@@ -40,6 +40,17 @@ services:
     networks:
       - elk
 
+  apm-server:
+    image: docker.elastic.co/apm/apm-server:8.15.0
+    container_name: apm-server
+    ports:
+      - "8200:8200"
+    environment:
+      - output.elasticsearch.hosts=["http://elasticsearch:9200"]
+      - apm-server.rum.enabled=true
+    depends_on:
+      - elasticsearch
+
 networks:
   elk:
     driver: bridge
