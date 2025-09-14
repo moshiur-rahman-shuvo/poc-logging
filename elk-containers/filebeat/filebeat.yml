@@ -1,0 +1,24 @@
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /usr/share/filebeat/logs/*-requests.log   # only request logs
+    exclude_files: ['.*-server.log']            # ignore server logs
+    fields:
+      log_type: request
+    fields_under_root: true
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+  index: "poc-logs-%{+yyyy.MM.dd}"
+
+setup.ilm.enabled: false   # disable ILM, so Filebeat uses daily indices
+setup.template.name: "poc-logs"
+setup.template.pattern: "poc-logs-*"
+
+#logging.to_files: true
+#logging.files:
+#  path: /usr/share/filebeat/logs
+#  name: filebeat.log
+#  keepfiles: 7
+#  permissions: 0644

@@ -1,4 +1,4 @@
-package com.rms.userservice.config;
+package com.rms.orderservice.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
