@@ -34,59 +34,21 @@
         </dependency>
         <dependency>
             <groupId>com.rms</groupId>
-            <artifactId>common</artifactId>
+            <artifactId>common-logging</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
-
-        <!-- https://mvnrepository.com/artifact/co.elastic.apm/apm-agent-attach -->
-<!--        <dependency>-->
-<!--            <groupId>co.elastic.apm</groupId>-->
-<!--            <artifactId>apm-agent-attach</artifactId>-->
-<!--            <version>1.55.0</version>-->
-<!--            <scope>provided</scope>-->
-<!--        </dependency>-->
     </dependencies>
     <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>3.2.5</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.6.0</version>
-                <executions>
-                    <execution>
-                        <id>unpack-common-logback</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.rms</groupId>
-                                    <artifactId>common</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>jar</type>
-                                    <overWrite>true</overWrite>
-                                    <includes>logback-spring.xml</includes>
-                                    <outputDirectory>${project.build.outputDirectory}</outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>../common-logging/src/main/resources</directory>
+                <includes>
+                    <include>logback-spring.xml</include>
+                </includes>
+            </resource>
+        </resources>
     </build>
 </project>

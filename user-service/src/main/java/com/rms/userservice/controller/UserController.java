@@ -29,7 +29,7 @@ public class UserController {
 
     @PostMapping("/order")
     public ResponseEntity<?> placeOrder(@RequestBody OrderClient.OrderRequest orderRequest) {
-        log.info("Received order request: {}", orderRequest);
+        log.info("Received order request: {} {} {} {}", orderRequest.getUserId(), orderRequest.getProduct(),orderRequest.getQuantity(),orderRequest.getPrice());
         OrderClient.OrderResponse orderResponse = orderClient.placeOrder(orderRequest);
         return ResponseEntity.ok(orderResponse);
     }
