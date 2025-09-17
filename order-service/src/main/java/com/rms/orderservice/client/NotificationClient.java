@@ -19,12 +19,8 @@ public class NotificationClient {
         this.restTemplate = restTemplate;
     }
 
-    public void sendNotification(NotificationRequest request, String traceId) {
-        HttpHeaders headers = new HttpHeaders();
-        if (traceId != null && !traceId.isEmpty()) {
-            headers.set("traceid", traceId);
-        }
-        HttpEntity<NotificationRequest> entity = new HttpEntity<>(request, headers);
+    public void sendNotification(NotificationRequest request) {
+        HttpEntity<NotificationRequest> entity = new HttpEntity<>(request);
         restTemplate.postForEntity(notificationUrl, entity, Void.class);
     }
 

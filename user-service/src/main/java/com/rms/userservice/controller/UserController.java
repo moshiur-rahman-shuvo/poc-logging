@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.rms.userservice.service.UserService;
 import com.rms.userservice.client.NotificationClient;
 import com.rms.userservice.client.OrderClient;
-import com.rms.filter.RequestResponseLogger;
 
 @Slf4j
 @RestController
@@ -35,11 +34,9 @@ public class UserController {
     }
 
     @PostMapping("/order")
-    public ResponseEntity<?> placeOrder(@RequestBody OrderClient.OrderRequest orderRequest,
-                                        @RequestHeader(value = "traceid", required = false) String traceId,
-                                        jakarta.servlet.http.HttpServletRequest request) {
-        RequestResponseLogger.logRequest(request, environment, "UserController", orderRequest, traceId);
-        OrderClient.OrderResponse orderResponse = orderClient.placeOrder(orderRequest, traceId);
+    public ResponseEntity<?> placeOrder(@RequestBody OrderClient.OrderRequest orderRequest) {
+        log.info("Placing order: {} ", orderRequest);
+        OrderClient.OrderResponse orderResponse = orderClient.placeOrder(orderRequest);
         return ResponseEntity.ok(orderResponse);
     }
 }

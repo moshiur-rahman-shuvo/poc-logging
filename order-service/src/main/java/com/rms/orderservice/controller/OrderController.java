@@ -3,12 +3,13 @@ package com.rms.orderservice.controller;
 import com.rms.orderservice.entity.Order;
 import com.rms.orderservice.service.OrderService;
 import com.rms.orderservice.client.NotificationClient;
-import com.rms.filter.RequestResponseLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
@@ -25,20 +26,17 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<Order> placeOrder(@RequestBody Order order,
-                                            @RequestHeader(value = "traceid", required = false) String traceId,
-                                            jakarta.servlet.http.HttpServletRequest request) {
-        RequestResponseLogger.logRequest(request, environment, "OrderController", order, traceId);
+    public ResponseEntity<Order> placeOrder(@RequestBody Order order) {
         Order savedOrder = null;
         try {
             savedOrder = orderService.placeOrder(order);
         } catch (Exception e) {
-            RequestResponseLogger.logRequest(request, environment, "OrderController", "Error placing order: " + e.getMessage(), traceId);
+            log.error("Error placing order: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }
+        log.info("Order placed: {}", savedOrder);
         String message = "Your order for product '" + savedOrder.getProduct() + "' has been placed successfully.";
-        RequestResponseLogger.logRequest(request, environment, "NotificationClient", message, traceId);
-        notificationClient.sendNotification(new NotificationClient.NotificationRequest(savedOrder.getUserId(), message), traceId);
+        notificationClient.sendNotification(new NotificationClient.NotificationRequest(savedOrder.getUserId(), message));
         return ResponseEntity.ok(savedOrder);
     }
 }

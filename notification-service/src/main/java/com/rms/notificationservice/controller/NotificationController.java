@@ -1,9 +1,7 @@
 package com.rms.notificationservice.controller;
 
-import com.rms.filter.RequestResponseLogger;
 import com.rms.notificationservice.service.NotificationService;
 import com.rms.notificationservice.dto.NotificationRequest;
-import com.rms.filter.RequestResponseLogger.*;
 import org.springframework.core.env.Environment;
 import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +24,8 @@ public class NotificationController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> sendNotification(@RequestBody NotificationRequest request, @RequestHeader(value = "traceid", required = false) String traceId, HttpServletRequest httpRequest) {
-        RequestResponseLogger.logRequest(httpRequest, environment, "NotificationController", request, traceId);
+    public ResponseEntity<Void> sendNotification(@RequestBody NotificationRequest request) {
+        log.info("Sending Notification: {} ", request);
         notificationService.sendNotification(request.getUser(), request.getMessage());
         return ResponseEntity.ok().build();
     }

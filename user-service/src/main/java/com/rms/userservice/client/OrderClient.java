@@ -20,11 +20,8 @@ public class OrderClient {
         this.restTemplate = restTemplate;
     }
 
-    public OrderResponse placeOrder(OrderRequest orderRequest, String traceId) {
+    public OrderResponse placeOrder(OrderRequest orderRequest) {
         HttpHeaders headers = new HttpHeaders();
-        if (traceId != null && !traceId.isEmpty()) {
-            headers.set("traceid", traceId);
-        }
         HttpEntity<OrderRequest> entity = new HttpEntity<>(orderRequest, headers);
         ResponseEntity<OrderResponse> response = restTemplate.postForEntity(
             orderUrl, entity, OrderResponse.class);
@@ -51,6 +48,16 @@ public class OrderClient {
         public void setQuantity(Integer quantity) { this.quantity = quantity; }
         public Double getPrice() { return price; }
         public void setPrice(Double price) { this.price = price; }
+
+        @Override
+        public String toString() {
+            return "OrderRequest{" +
+                    "userId=" + userId +
+                    ", product='" + product + '\'' +
+                    ", quantity=" + quantity +
+                    ", price=" + price +
+                    '}';
+        }
     }
 
     public static class OrderResponse {

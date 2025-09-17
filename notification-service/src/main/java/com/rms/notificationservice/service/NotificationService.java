@@ -8,6 +8,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class NotificationService {
     public void sendNotification(NotificationUserDto user, String message) {
-        log.info("Notification '{}' sent to user {}", message, user);
+        log.info("Notification '{}' sent to user {}", message, user.getId());
     }
 }
