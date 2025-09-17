@@ -1,6 +1,5 @@
 package com.rms.filter;
 
-import com.rms.filter.RequestResponseLogFormatter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -62,66 +61,36 @@ public class RequestResponseTraceFilter extends OncePerRequestFilter {
         } finally {
             long durationMs = System.currentTimeMillis() - start;
 
-            // Build request log line
             String requestBody = readPayload(request.getContentAsByteArray(), request.getCharacterEncoding());
+            String responseBody = readPayload(response.getContentAsByteArray(), response.getCharacterEncoding());
             String remoteAddr = Optional.ofNullable(request.getHeader("X-Forwarded-For"))
                     .orElseGet(request::getRemoteAddr);
-
             String requestTime = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z").format(new Date());
+            String logLevel = (response.getStatus() >= 400) ? "ERROR" : "INFO";
+            String className = request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingHandler") != null
+                ? request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingHandler").getClass().getSimpleName()
+                : request.getServletPath();
+            String api = request.getRequestURI() + Optional.ofNullable(request.getQueryString()).map(q -> "?" + q).orElse("");
+            String serviceName = getAppName();
 
-            String reqLog = RequestResponseLogFormatter.formatRequest(
-                getAppName(),
-                remoteAddr,
-                requestTime,
+            String combinedLog = RequestResponseLogFormatter.formatCombined(
+                serviceName,
+                className,
                 request.getMethod(),
-                request.getRequestURI() + Optional.ofNullable(request.getQueryString()).map(q -> "?" + q).orElse("") ,
-                request.getProtocol(),
-                Optional.ofNullable(request.getHeader("X-Forwarded-For")).orElse("") ,
-                ENV,
-                Optional.ofNullable(request.getHeader("User-Agent")).orElse("") ,
-                Thread.currentThread().getName(),
-                request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingHandler") != null
-                    ? request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingHandler").getClass().getSimpleName()
-                    : request.getServletPath(),
-                truncate(requestBody, MAX_PAYLOAD_LOG_LENGTH),
-                traceId
-            );
-
-            REQ_LOG.info(reqLog);
-
-            // Build response log line
-            String responseBody = readPayload(response.getContentAsByteArray(), response.getCharacterEncoding());
-
-            String level = (response.getStatus() >= 400) ? "ERROR" : "INFO";
-
-            String respLog = RequestResponseLogFormatter.formatResponse(
-                getAppName(),
-                remoteAddr,
-                requestTime,
-                request.getMethod(),
-                request.getRequestURI() + Optional.ofNullable(request.getQueryString()).map(q -> "?" + q).orElse("") ,
-                request.getProtocol(),
-                Optional.ofNullable(request.getHeader("X-Forwarded-For")).orElse("") ,
-                ENV,
-                Optional.ofNullable(request.getHeader("User-Agent")).orElse("") ,
-                Thread.currentThread().getName(),
-                level,
-                request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingHandler") != null
-                    ? request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingHandler").getClass().getSimpleName()
-                    : request.getServletPath(),
-                truncate(responseBody, MAX_PAYLOAD_LOG_LENGTH),
+                api,
+                logLevel,
                 traceId,
-                durationMs
+                durationMs,
+                requestTime,
+                truncate(requestBody, MAX_PAYLOAD_LOG_LENGTH),
+                truncate(responseBody, MAX_PAYLOAD_LOG_LENGTH)
             );
 
-            // Use INFO/ERROR on REQUEST logger depending on status
             if (response.getStatus() >= 400) {
-                REQ_LOG.error(respLog);
+                REQ_LOG.error(combinedLog);
             } else {
-                REQ_LOG.info(respLog);
+                REQ_LOG.info(combinedLog);
             }
-
-            // IMPORTANT: copy response body back to the client
             response.copyBodyToResponse();
 
             MDC.remove(MDC_KEY);

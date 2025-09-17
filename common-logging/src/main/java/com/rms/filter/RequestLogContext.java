@@ -30,10 +30,14 @@ public class RequestLogContext {
         this.handler = handler;
     }
 
+    public static String getRequestTime() {
+        return new java.text.SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z").format(new java.util.Date());
+    }
+
     public static RequestLogContext from(HttpServletRequest request, Environment environment, String handler) {
         String appName = environment.getProperty("spring.application.name", "unknown-service");
         String remoteAddr = request.getHeader("X-Forwarded-For") != null ? request.getHeader("X-Forwarded-For") : request.getRemoteAddr();
-        String requestTime = RequestResponseLogFormatter.getRequestTime();
+        String requestTime = getRequestTime();
         String method = request.getMethod();
         String uri = request.getRequestURI() + (request.getQueryString() != null ? "?" + request.getQueryString() : "");
         String protocol = request.getProtocol();
@@ -44,4 +48,3 @@ public class RequestLogContext {
         return new RequestLogContext(appName, remoteAddr, requestTime, method, uri, protocol, forwardedFor, env, userAgent, threadName, handler);
     }
 }
-
