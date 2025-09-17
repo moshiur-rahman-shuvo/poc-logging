@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
@@ -31,6 +32,12 @@ public class RequestResponseTraceFilter extends OncePerRequestFilter {
     private static final String MDC_KEY = "traceId";
     private static final int MAX_PAYLOAD_LOG_LENGTH = 4096;
     private static final String ENV = "prod";
+
+    private final Environment environment;
+
+    public RequestResponseTraceFilter(Environment environment) {
+        this.environment = environment;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request0,
@@ -62,7 +69,8 @@ public class RequestResponseTraceFilter extends OncePerRequestFilter {
             String requestTime = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z").format(new Date());
 
             String reqLog = String.format(
-                    "[Request] %s - [%s] \"%s %s %s\" \"%s\" \"%s\" \"%s\" \"%s\" INFO \"%s\" - [RequestBody: %s] %s",
+                    "[%s][Request] %s - [%s] \"%s %s %s\" \"%s\" \"%s\" \"%s\" \"%s\" INFO \"%s\" - [RequestBody: %s] %s",
+                    getAppName(),
                     remoteAddr,
                     requestTime,
                     request.getMethod(),
@@ -88,7 +96,8 @@ public class RequestResponseTraceFilter extends OncePerRequestFilter {
             String level = (response.getStatus() >= 400) ? "ERROR" : "INFO";
 
             String respLog = String.format(
-                    "[Response] %s - [%s] \"%s %s %s\" \"%s\" \"%s\" \"%s\" \"%s\" %s \"%s\" - [ResponseBody: %s] %s (%d ms)",
+                    "[%s][Response] %s - [%s] \"%s %s %s\" \"%s\" \"%s\" \"%s\" \"%s\" %s \"%s\" - [ResponseBody: %s] %s (%d ms)",
+                    getAppName(),
                     remoteAddr,
                     requestTime,
                     request.getMethod(),
@@ -136,5 +145,13 @@ public class RequestResponseTraceFilter extends OncePerRequestFilter {
         if (s == null) return "";
         if (s.length() <= max) return s;
         return s.substring(0, max) + "...(truncated)";
+    }
+
+    private String getAppName() {
+        String appName = environment.getProperty("spring.application.name");
+        if (appName == null || appName.isBlank()) {
+            appName = "unknown-service";
+        }
+        return appName;
     }
 }
