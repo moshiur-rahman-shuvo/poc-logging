@@ -1,5 +1,6 @@
 package com.rms.filter;
 
+import com.rms.filter.RequestResponseLogFormatter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -68,24 +69,22 @@ public class RequestResponseTraceFilter extends OncePerRequestFilter {
 
             String requestTime = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z").format(new Date());
 
-            String reqLog = String.format(
-                    "[%s][Request] %s - [%s] \"%s %s %s\" \"%s\" \"%s\" \"%s\" \"%s\" INFO \"%s\" - [RequestBody: %s] %s",
-                    getAppName(),
-                    remoteAddr,
-                    requestTime,
-                    request.getMethod(),
-                    request.getRequestURI() + Optional.ofNullable(request.getQueryString()).map(q -> "?" + q).orElse(""),
-                    request.getProtocol(),
-                    Optional.ofNullable(request.getHeader("X-Forwarded-For")).orElse(""),
-                    ENV,
-                    Optional.ofNullable(request.getHeader("User-Agent")).orElse(""),
-                    Thread.currentThread().getName(),
-                    // logger/class that handled this request - we approximate with handler class name not trivial here
-                    request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingHandler") != null
-                            ? request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingHandler").getClass().getSimpleName()
-                            : request.getServletPath(),
-                    truncate(requestBody, MAX_PAYLOAD_LOG_LENGTH),
-                    traceId
+            String reqLog = RequestResponseLogFormatter.formatRequest(
+                getAppName(),
+                remoteAddr,
+                requestTime,
+                request.getMethod(),
+                request.getRequestURI() + Optional.ofNullable(request.getQueryString()).map(q -> "?" + q).orElse("") ,
+                request.getProtocol(),
+                Optional.ofNullable(request.getHeader("X-Forwarded-For")).orElse("") ,
+                ENV,
+                Optional.ofNullable(request.getHeader("User-Agent")).orElse("") ,
+                Thread.currentThread().getName(),
+                request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingHandler") != null
+                    ? request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingHandler").getClass().getSimpleName()
+                    : request.getServletPath(),
+                truncate(requestBody, MAX_PAYLOAD_LOG_LENGTH),
+                traceId
             );
 
             REQ_LOG.info(reqLog);
@@ -95,25 +94,24 @@ public class RequestResponseTraceFilter extends OncePerRequestFilter {
 
             String level = (response.getStatus() >= 400) ? "ERROR" : "INFO";
 
-            String respLog = String.format(
-                    "[%s][Response] %s - [%s] \"%s %s %s\" \"%s\" \"%s\" \"%s\" \"%s\" %s \"%s\" - [ResponseBody: %s] %s (%d ms)",
-                    getAppName(),
-                    remoteAddr,
-                    requestTime,
-                    request.getMethod(),
-                    request.getRequestURI() + Optional.ofNullable(request.getQueryString()).map(q -> "?" + q).orElse(""),
-                    request.getProtocol(),
-                    Optional.ofNullable(request.getHeader("X-Forwarded-For")).orElse(""),
-                    ENV,
-                    Optional.ofNullable(request.getHeader("User-Agent")).orElse(""),
-                    Thread.currentThread().getName(),
-                    level,
-                    request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingHandler") != null
-                            ? request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingHandler").getClass().getSimpleName()
-                            : request.getServletPath(),
-                    truncate(responseBody, MAX_PAYLOAD_LOG_LENGTH),
-                    traceId,
-                    durationMs
+            String respLog = RequestResponseLogFormatter.formatResponse(
+                getAppName(),
+                remoteAddr,
+                requestTime,
+                request.getMethod(),
+                request.getRequestURI() + Optional.ofNullable(request.getQueryString()).map(q -> "?" + q).orElse("") ,
+                request.getProtocol(),
+                Optional.ofNullable(request.getHeader("X-Forwarded-For")).orElse("") ,
+                ENV,
+                Optional.ofNullable(request.getHeader("User-Agent")).orElse("") ,
+                Thread.currentThread().getName(),
+                level,
+                request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingHandler") != null
+                    ? request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingHandler").getClass().getSimpleName()
+                    : request.getServletPath(),
+                truncate(responseBody, MAX_PAYLOAD_LOG_LENGTH),
+                traceId,
+                durationMs
             );
 
             // Use INFO/ERROR on REQUEST logger depending on status

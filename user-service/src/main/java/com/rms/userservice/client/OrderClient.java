@@ -1,6 +1,7 @@
 package com.rms.userservice.client;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,9 @@ import org.springframework.http.HttpHeaders;
 @Service
 public class OrderClient {
     private final RestTemplate restTemplate;
+
+    @Value("${order.url}")
+    private String orderUrl;
 
     @Autowired
     public OrderClient(RestTemplate restTemplate) {
@@ -23,7 +27,7 @@ public class OrderClient {
         }
         HttpEntity<OrderRequest> entity = new HttpEntity<>(orderRequest, headers);
         ResponseEntity<OrderResponse> response = restTemplate.postForEntity(
-            "http://localhost:8082/order/api/orders", entity, OrderResponse.class);
+            orderUrl, entity, OrderResponse.class);
         return response.getBody();
     }
 

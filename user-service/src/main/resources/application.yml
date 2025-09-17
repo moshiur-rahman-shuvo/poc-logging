@@ -15,4 +15,8 @@ spring:
       ddl-auto: update
     show-sql: true
     database-platform: org.hibernate.dialect.MySQL8Dialect
+order:
+  url: http://localhost:8082/order/api/orders
 
+notification:
+  url: http://localhost:8083/notification/api/notifications
