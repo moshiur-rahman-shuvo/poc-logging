@@ -22,7 +22,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<Order> placeOrder(@RequestBody Order order) {
+    public ResponseEntity<Order> placeOrder(@RequestBody Order order, @RequestHeader(value = "traceid", required = false) String traceId) {
         Order savedOrder = null;
         try {
             savedOrder = orderService.placeOrder(order);
@@ -31,8 +31,7 @@ public class OrderController {
             return ResponseEntity.badRequest().build();
         }
         String message = "Your order for product '" + savedOrder.getProduct() + "' has been placed successfully.";
-        notificationClient.sendNotification(new NotificationClient.NotificationRequest(savedOrder.getUserId(), message));
+        notificationClient.sendNotification(new NotificationClient.NotificationRequest(savedOrder.getUserId(), message), traceId);
         return ResponseEntity.ok(savedOrder);
     }
 }
-

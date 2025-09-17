@@ -1,6 +1,8 @@
 package com.rms.orderservice.client;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -13,8 +15,13 @@ public class NotificationClient {
         this.restTemplate = restTemplate;
     }
 
-    public void sendNotification(NotificationRequest request) {
-        restTemplate.postForEntity("http://localhost:8083/notification/api/notifications", request, Void.class);
+    public void sendNotification(NotificationRequest request, String traceId) {
+        HttpHeaders headers = new HttpHeaders();
+        if (traceId != null && !traceId.isEmpty()) {
+            headers.set("traceid", traceId);
+        }
+        HttpEntity<NotificationRequest> entity = new HttpEntity<>(request, headers);
+        restTemplate.postForEntity("http://localhost:8083/notification/api/notifications", entity, Void.class);
     }
 
     public static class NotificationRequest {
@@ -31,4 +38,3 @@ public class NotificationClient {
         public void setMessage(String message) { this.message = message; }
     }
 }
-

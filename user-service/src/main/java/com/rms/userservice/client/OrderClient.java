@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 
 @Service
 public class OrderClient {
@@ -14,9 +16,14 @@ public class OrderClient {
         this.restTemplate = restTemplate;
     }
 
-    public OrderResponse placeOrder(OrderRequest orderRequest) {
+    public OrderResponse placeOrder(OrderRequest orderRequest, String traceId) {
+        HttpHeaders headers = new HttpHeaders();
+        if (traceId != null && !traceId.isEmpty()) {
+            headers.set("traceid", traceId);
+        }
+        HttpEntity<OrderRequest> entity = new HttpEntity<>(orderRequest, headers);
         ResponseEntity<OrderResponse> response = restTemplate.postForEntity(
-            "http://localhost:8082/order/api/orders", orderRequest, OrderResponse.class);
+            "http://localhost:8082/order/api/orders", entity, OrderResponse.class);
         return response.getBody();
     }
 
@@ -61,4 +68,3 @@ public class OrderClient {
         public void setPrice(Double price) { this.price = price; }
     }
 }
-

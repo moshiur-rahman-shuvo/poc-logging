@@ -4,20 +4,31 @@ import com.rms.userservice.entity.Users;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class NotificationClient {
     private final RestTemplate restTemplate;
+    private static final Logger LOG = LoggerFactory.getLogger(NotificationClient.class);
 
     @Autowired
     public NotificationClient(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
-    public void sendNotification(Users user, String message) {
+    public void sendNotification(Users user, String message, String traceId) {
         NotificationUserDto userDto = new NotificationUserDto(user.getId(), user.getName(), user.getEmail(), user.getAddress());
         NotificationRequest request = new NotificationRequest(userDto, message);
-        restTemplate.postForEntity("http://localhost:8083/notification/api/notifications", request, Void.class);
+        HttpHeaders headers = new HttpHeaders();
+        if (traceId != null && !traceId.isEmpty()) {
+            headers.set("traceid", traceId);
+        }
+        LOG.info("Sending notification with headers: {}", headers);
+        HttpEntity<NotificationRequest> entity = new HttpEntity<>(request, headers);
+        restTemplate.postForEntity("http://localhost:8083/notification/api/notifications", entity, Void.class);
     }
 
     public static class NotificationUserDto {

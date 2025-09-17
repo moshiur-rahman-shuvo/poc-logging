@@ -1,47 +1,68 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="30 seconds">
 
+    <!-- ===============================
+         Properties
+         =============================== -->
     <property name="LOG_HOME" value="C:/Users/Vivasoft/Desktop/poc-logging/logs"/>
     <property name="APP_NAME" value="${spring.application.name:-application}"/>
 
-    <!-- File appender: INFO + ERROR -->
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_HOME}/${APP_NAME}.log</file>
+    <!-- ===============================
+         Startup / Spring Boot Logs
+         (like catalina.out)
+         =============================== -->
+    <appender name="STARTUP_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/${APP_NAME}-startup.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_HOME}/${APP_NAME}-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_HOME}/${APP_NAME}-startup-%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
-            <cleanHistoryOnStart>true</cleanHistoryOnStart>
         </rollingPolicy>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>INFO</level>
-            <onMatch>ACCEPT</onMatch>
-            <onMismatch>NEUTRAL</onMismatch>
-        </filter>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>ERROR</level>
-            <onMatch>ACCEPT</onMatch>
-            <onMismatch>DENY</onMismatch>
-        </filter>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <Pattern>%d{yyyy-MM-dd HH:mm:ss} [%X{traceId}] %-5level %logger{36} - %msg%n</Pattern>
+            <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
         </encoder>
     </appender>
 
-    <!-- Console appender: INFO + WARN + ERROR -->
+    <!-- ===============================
+         Request / Response Logs
+         Formatted by RequestResponseTraceFilter
+         =============================== -->
+    <appender name="APP_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/application.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/application-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!-- Print only the message; filter builds full log line -->
+            <Pattern>%msg%n</Pattern>
+        </encoder>
+    </appender>
+
+    <!-- ===============================
+         Console logs
+         =============================== -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <Pattern>%d{yyyy-MM-dd HH:mm:ss} [%X{traceId}] %-5level %logger{36} - %msg%n</Pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg %X{traceId}%n</pattern>
         </encoder>
     </appender>
 
-    <!-- Package-specific loggers -->
-    <logger name="org.springframework" level="INFO"/>
-    <logger name="com.rms" level="INFO"/>
+    <!-- ===============================
+         Logger for Request/Response Filter
+         Routed to application.log and console
+         =============================== -->
+    <logger name="REQUEST_LOGGER" level="INFO" additivity="false">
+        <appender-ref ref="APP_FILE"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
 
-    <!-- Root logger: INFO level ensures DEBUG and TRACE are ignored everywhere -->
+    <!-- ===============================
+         Root Logger
+         Controls startup + other logs
+         INFO level: suppress DEBUG logs
+         =============================== -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
+        <appender-ref ref="STARTUP_FILE"/>
     </root>
 
 </configuration>
