@@ -29,7 +29,7 @@ public class UserController {
                                         @RequestHeader(value = "traceid", required = false) String traceId) {
         Users savedUser = userService.createUser(users);
         log.info("User created: {} sending notification email", savedUser);
-        notificationClient.sendNotification(savedUser, "Welcome to our service!", traceId);
+        notificationClient.sendNotification(savedUser.getId(), "Welcome to our service!", traceId);
         return ResponseEntity.ok(savedUser);
     }
 

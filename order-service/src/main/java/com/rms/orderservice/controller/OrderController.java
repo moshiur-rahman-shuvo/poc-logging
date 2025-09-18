@@ -36,7 +36,13 @@ public class OrderController {
         }
         log.info("Order placed: {}", savedOrder);
         String message = "Your order for product '" + savedOrder.getProduct() + "' has been placed successfully.";
-        notificationClient.sendNotification(new NotificationClient.NotificationRequest(savedOrder.getUserId(), message));
+
+        try {
+            log.info("userid: {}, message: {}", savedOrder.getUserId(), message) ;
+            notificationClient.sendNotification(new NotificationClient.NotificationRequest(savedOrder.getUserId(), message));
+        } catch (Exception e) {
+            log.error("Error sending notification: {}", e.getMessage());
+        }
         return ResponseEntity.ok(savedOrder);
     }
 }

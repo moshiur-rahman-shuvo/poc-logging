@@ -1,5 +1,4 @@
 package com.rms.notificationservice.controller;
-
 import com.rms.notificationservice.service.NotificationService;
 import com.rms.notificationservice.dto.NotificationRequest;
 import org.springframework.core.env.Environment;
@@ -26,7 +25,7 @@ public class NotificationController {
     @PostMapping
     public ResponseEntity<Void> sendNotification(@RequestBody NotificationRequest request) {
         log.info("Sending Notification: {} ", request);
-        notificationService.sendNotification(request.getUser(), request.getMessage());
+        notificationService.sendNotification(request.getUserId(), request.getMessage());
         return ResponseEntity.ok().build();
     }
 }
